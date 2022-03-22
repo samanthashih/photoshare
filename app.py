@@ -240,7 +240,7 @@ def findPhotoOwner(pid):
 	cursor.execute(	"SELECT user_id FROM Photos WHERE photo_id = {0}".format(pid))
 	return cursor.fetchone()[0]
  
-@app.route('/comment', methods=[''])
+@app.route('/comment', methods=['GET','POST'])
 @flask_login.login_required
 def comment():
 	if (flask_login.current_user.is_anonymous): 
