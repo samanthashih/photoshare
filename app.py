@@ -183,7 +183,6 @@ def protected1():
 def getUser(uid):
    cursor = conn.cursor()
    sql = "SELECT * FROM Users WHERE user_id = {0}".format(uid)
-   print(sql)
    cursor.execute(sql)
    return cursor.fetchall()
 
@@ -192,6 +191,65 @@ def getUser(uid):
 def protected():
 	uid = getUserIdFromEmail(flask_login.current_user.id)
 	return render_template('profile.html', name=flask_login.current_user.id, getUser = getUser(uid), message="Here's your profile")
+
+
+
+#friend stuff
+#get list of friends
+def getFriends(uid):
+   cursor = conn.cursor()
+   sql = "SELECT first_name, last_name, user_id1, user_id2 FROM Friends INNER JOIN Users ON Users.user_id = Friends.userID2 HAVING userID1 = {0}".format(uid)
+   cursor.execute(sql)
+   return cursor.fetchall()
+ 
+#find friend by email
+def findPersonByEmail(email):
+	uid = getUserIdFromEmail(flask_login.current_user.id)
+	cursor = conn.cursor()
+	sql = "SELECT first_name, last_name, email FROM Users WHERE email = '{0}' AND user_id NOT IN (SELECT Friends.user_id2 FROM Friends WHERE Friends.user_id1 = {1}) HAVING user_id <> {2}".format(email, uid, uid)
+	cursor.execute(sql)
+	return cursor.fetchall()
+ 
+def addFriend(uid1, uid2):
+   cursor = conn.cursor()
+   sql = "INSERT INTO Friends VALUES ({0}, {1}), ({2}, {3});".format(uid1, uid2, uid2, uid1)
+   cursor.execute(sql)
+   conn.commit()
+
+
+@app.route('/addfriends', methods=['GET', 'POST'])
+@flask_login.login_required
+def add_friend():
+	uid = getUserIdFromEmail(flask_login.current_user.id)
+
+	if request.method == 'POST':
+		uid = getUserIdFromEmail(flask_login.current_user.id)
+		friend_email = request.form.get('friend_email')
+		friend_uid = getUserIdFromEmail(friend_email)
+		cursor = conn.cursor()
+		cursor.execute("INSERT INTO Friends VALUES ({0}, {1}), ({2}, {3});".format(uid, friend_uid, friend_uid, uid))
+		conn.commit()
+		return render_template('hello.html', name=flask_login.current_user.id, message='Friend added!', base64=base64)
+	#The method is GET so we return a  HTML form to add the friend.
+	else:
+		return render_template('addfriends.html')
+
+
+# @app.route('/addfriends', methods=['POST'])
+# @flask_login.login_required
+# def addFriends():
+#    friend_email = request.form.get('email')
+#    return render_template('addfriends.html',stranger = findPersonByEmail(friend_email),  message = 'add friend')
+ 
+# @app.route('/makefriend', method = ['GET'])
+# @flask_login.login_required
+# def makeFriend():
+#    uid1 = getUserIdFromEmail(flask_login.current_user.id)
+#    uid2 = request.args.get('userID')
+#    addFriend(uid1, uid2)
+#    return flask.redirect(flask.url_for('/addfriends'))
+
+
 
 #begin photo uploading code
 # photos uploaded using base64 encoding so they can be directly embeded in HTML

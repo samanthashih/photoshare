@@ -8,19 +8,9 @@
     </div>
     <div id="content">
         <form method="post" action="">
-            <label for="email">Enter Email: </label>
-            <input type="text" name="email" /><br /> <input type = "submit"/>
+            <label for="friend_email">Enter Email: </label>
+            <input type="text" name="friend_email" /><br />                 
+            <input type="submit" value="Add friend" />
         </form>
      </div>
 </body>
-
-{%if stranger%}
-    Add a friend: 
-        <li> {{stranger[0]}} {{stranger[1]}} {{stranger[2]}}
-        <a href='/makeFriend?userID-{{stranger[3]}}'>add</a>
-        </li>
-   
-{% endif %}
-
-<a href='/friends'>Your Friends</a>
-<a href='/friendr'>Friend Recommendations</a>
