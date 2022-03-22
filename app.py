@@ -153,6 +153,12 @@ def getUsersPhotos(uid):
 	cursor.execute("SELECT photo_data, photo_id, caption FROM Photos WHERE user_id = '{0}'".format(uid))
 	return cursor.fetchall() #NOTE return a list of tuples, [(imgdata, pid, caption), ...]
 
+def getAllPhotos():
+	cursor = conn.cursor()
+	cursor.execute("SELECT photo_data, photo_id, caption FROM Photos")
+	return cursor.fetchall() #NOTE return a list of tuples, [(imgdata, pid, caption), ...]
+
+
 def getUserIdFromEmail(email):
 	cursor = conn.cursor()
 	cursor.execute("SELECT user_id  FROM Users WHERE email = '{0}'".format(email))
