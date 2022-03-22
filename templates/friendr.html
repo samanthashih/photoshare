@@ -1,0 +1,26 @@
+<head>
+    <title>Friend Recommendations</title>
+</head>
+
+<body>
+    <div class="title">
+        <h1>Your Recommendations</h1>
+    </div>
+    <div id="content">
+        {%if recs%}
+            <ul>
+                {% for rec in recs %}
+                    <li>{{rec[2]}} <br>
+                        <a href='/makefriend?userID={{rec[0]}}'> Add Friend </a> <br>
+                    </li>
+                {% endfor %}
+            </ul>
+        {%end if%}
+
+        {% if recs == [] %}
+            Add friends first to find recs! 
+        {%end if%}
+     </div>
+</body>
+
+<a href='/friends'>Friends List</a>
