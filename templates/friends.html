@@ -1,18 +1,22 @@
-<head>
-    <title>List of Friends</title>
-</head>
+<!-- author Snigdha Kalathur -->
+<!doctype html>
+{% if message %}
+  <h4>{{message}}!</h4>
+{% endif %}
+<title>Photoshare</title>
 
-<body>
-    <div class="title">
-        <h1>Your Friends</h1>
-    </div>
-    <div id="content">
-        <ul>
-            {% for friend in friendsList %}
-                <li>
-                    {{friend[0]}} {{friend[1]}}
-                </li>
-            {% endfor %}
-        </ul>
-     </div>
-</body>
+
+<h2>List Friends</h2>
+
+<h2>Friends</h2>
+{% if listfriends %}
+    <u1>
+        {% for f in listfriends %}
+            <li>{{f[0]}} {{f[1]}}</li>
+        {% endfor %}
+    </u1>
+{% endif %}
+
+<ul>
+<li><a href='/'>Home</a></li>
+</ul>

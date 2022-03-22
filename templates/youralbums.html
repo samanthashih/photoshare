@@ -1,0 +1,13 @@
+{% if albums %}
+<ul>
+{% for album in albums %}
+
+    <li>{{album[0]}}<br>
+    <a href='/viewalbumphotos?albums_id={{album[1]}}'>VIEW</a>
+    <a href='/deletealbum?albums_id={{album[1]}}'>DELETE ALBUM</a>
+  </li>
+{% endfor %}
+</ul>
+{% endif %}
+
+<li><a href='/'>Home</a></li>

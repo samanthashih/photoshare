@@ -1,0 +1,44 @@
+<!doctype html>
+{% if message %}
+  <h4>{{message}}!</h4>
+{% endif %}
+<title>Photoshare</title>
+
+
+<div class="title">
+    <h3>Search Your Photos By Tag:</h3>
+</div>
+<div id="content">
+    <form method="post" action="{{ url_for('yourphotosbytag') }}">
+        <label for="yourphotosbytag">Enter tag to search by:</label>
+        <input type="text" name="yourphotosbytag" /><br />
+        <input type="submit" />
+    </form>
+ </div>
+
+ {% if photos %}
+<h2>Here are your photos</h2>
+    <ul>
+    {% for photo in photos %}
+
+        <li>{{photo[2]}}<br>
+        <img src='data:image/jpg;base64, {{ base64.b64encode(photo[0]).decode("ascii") }}' width='600'/><br>
+      </li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+{% if photos == []%}
+<h2>No photos match your results</h2>
+{% endif %}
+
+
+{% if message is none %}
+  <p>You should <a href='/login'>login!</a></p>
+{% else %}
+  <p> Go to <a href='/profile'>profile?</a></p>
+{% endif %}
+
+<ul>
+        <li><a href='/'>Home</a></li>
+</ul>

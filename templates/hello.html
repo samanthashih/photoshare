@@ -9,7 +9,7 @@
 {% endif %}
 
 {% if photos %}
-<h2>Here are your photos</h2>
+<h2>Here are the photos</h2>
     <ul>
     {% for photo in photos %}
 
@@ -25,10 +25,36 @@
   <p> Go to <a href='/profile_info'>profile?</a></p>
 {% endif %}
 
+
+{% if albums %}
+<h2>Here are the albums</h2>
+    <ul>
+    {% for album in albums %}
+        <li>
+        <a href='/viewalbumphotos?albums_id={{album[1]}}'>{{album[0]}}</a>
+        <a href='/like?photo_id={{photo[1]}}'>Like</a><br>
+        <a href='/comments?photo_id={{photo[1]}}'>Comment</a><br>
+        <a href='/viewPhotoLikes?photo_id={{photo[1]}}'>View Likes</a><br>
+      </li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+
 <ul>
 <li><a href='/upload'>Upload a photo</a> </li>
 <li><a href='/logout'>Logout</a></li>
 <li><a href='/addfriends'>Add a friend</a></li>
+<li><a href='/yourphotos'>View your photos</a></li>
+<li><a href='/youralbums'>View your albums</a></li>
+<li><a href='/yourphotosbytag'>View your photos by tag</a></li>
+<li><a href='/photosearchbytag'>View any photo by tag</a></li>
+<li><a href='/viewphotos'>View any photo</a></li>
+<li><a href='/viewalbums'>View any album</a></li>
+<li><a href='/friends'>View friends list</a></li>
+
+
+
 
 <li><a href='/'>Home</a></li>
 </ul>
