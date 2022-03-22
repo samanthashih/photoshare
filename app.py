@@ -174,7 +174,12 @@ def getUsersAlbums(uid):
    cursor.execute("SELECT album_name, albums_id FROM Albums WHERE Albums.user_id = '{0}'".format(uid))
    return cursor.fetchall() #NOTE list of tuples, [(imgdata, pid), ...]
 
-#gets user info
+@app.route('/profile')
+@flask_login.login_required
+def protected1():
+	return render_template('hello.html', name=flask_login.current_user.id, message="Here's your profile")
+
+
 def getUser(uid):
    cursor = conn.cursor()
    sql = "SELECT * FROM Users WHERE user_id = {0}".format(uid)
@@ -182,96 +187,11 @@ def getUser(uid):
    cursor.execute(sql)
    return cursor.fetchall()
 
-@app.route('/profile')
+@app.route('/profile_info')
 @flask_login.login_required
 def protected():
-   uid = getUserIdFromEmail(flask_login.current_user.id)
-   return render_template('profile.html', getUser = getUser(uid), message="Here's your profile")
-
-
-#get list of friends
-def getFriends(uid):
-   cursor = conn.cursor()
-   sql = "SELECT first_name, last_name, user_id1, user_id2 FROM Friends INNER JOIN Users ON Users.user_id = Friends.userID2 HAVING userID1 = {0}".format(uid)
-   print(sql)
-   cursor.execute(sql)
-   return cursor.fetchall()
- 
-#find friend by email
-def findFriend(uid, email):
-   cursor = conn.cursor()
-   sql = "SELECT first_name, last_name, email FROM Users WHERE email = {0} AND user_id NOT IN (SELECT Friends.user_id2 FROM Friends WHERE Friends.user_id1 = {1}) HAVING user_id <> {2}".format(email, uid, uid)
-   print(sql)
-   cursor.execute(sql)
-   conn.commit()
- 
-def addFriend(uid1, uid2):
-   cursor = conn.cursor()
-   sql = "INSERT INTO Friends VALUES ({0}, {1}), ({2}, {3});".format(uid1, uid2, uid2, uid1)
-   print(sql)
-   cursor.execute(sql)
-   conn.commit()
- 
-@app.route('/friends', method=['GET'])
-@flask_login.login_required
-def friends():
-   uid = getUserIdFromEmail(flask_login.current_user.id)
-   return render_template('friends.html', message='friends list', friendsList = getFriends(uid), base64 = base64)
- 
-@app.route('/addfriends', methods=['POST'])
-@flask_login.login_required
-def addFriends():
-   uid = getUserIdFromEmail(flask_login.current_user.id)
-   email = request.form.get('email')
-   return render_template('addfriends.html', message = 'add friend', stranger = findFriend(uid, email))
- 
-@app.route('/makefriend', method = ['GET'])
-@flask_login.login_required
-def makeFriend():
-   uid1 = getUserIdFromEmail(flask_login.current_user.id)
-   uid2 = request.args.get('userID')
-   addFriend(uid1, uid2)
-   return flask.redirect(flask.url_for('/addfriends'))
- 
-@app.route('/friendr', methods=['GET'])
-@flask_login.login_required
-def friendR():
-   uid = getUserIdFromEmail(flask_login.current_user.id)
-   cursor = conn.cursor()
-   sql = "SELECT t2.user_id2, count(*), u.email FROM Friends t1 INNER JOIN Friends t2 ON t2.user_id1 = t1.userid2 and t2.userid2 != t1.userid1 INNER JOIN Users u on t2.userid2 = u.user_id WHERE t1.user_id1 = {0} and t1.user_id2 and t2.user_id2 NOT IN (Select t3.user_id2 from Friends t3 where t3.user_id1 = {1}) GROUP BY t2.user_id2, u.email ORDER BY count(*) desc, user_id2".format(uid, uid)
-   print(sql)
-   cursor.execute(sql)
-   r = cursor.fetchall()
-   if len(r) == 0:
-       r = []
-   print(r)
- 
-   return render_template('friendr.html', message = 'Friend Recs', recs = r, base64 = base64 )
-  
-#add comment to photo, has to be a registered user
-def addComment(pid, uid, comment):
-   cursor = conn.cursor()
-   date = date.today()
-   sql = "INSERT INTO Comments(user_id, photo_id, comment_text, comment_date) VALUES ('{0}', '{1}', '{2}', '{3}')".format(uid, pid, comment, date)
-   print(sql)
-   cursor.execute(sql)
-   conn.commit()
- 
-#add comment to photo, anonymous user
-def addAComment(pid, comment):
-   cursor = conn.cursor()
-   date = date.today()
-   sql = "INSERT INTO Comments(photo_id, comment_text, comment_date) VALUES ('{0}', '{1}', '{2}')".format(pid, comment, date)
-   print(sql)
-   cursor.execute(sql)
-   conn.commit()
- 
-# @app.route('/comment', methods=[''])
-# @flask_login.login_required
-# def comment():
-
-
-
+	uid = getUserIdFromEmail(flask_login.current_user.id)
+	return render_template('profile.html', name=flask_login.current_user.id, getUser = getUser(uid), message="Here's your profile")
 
 #begin photo uploading code
 # photos uploaded using base64 encoding so they can be directly embeded in HTML
