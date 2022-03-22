@@ -199,14 +199,90 @@ def protected():
 	return render_template('profile.html', name=flask_login.current_user.id, getUser = getUser(uid), message="Here's your profile")
 
 
+#comment stuff
+#add comment to photo, has to be a registered user
+def addComment(pid, uid, comment):
+   cursor = conn.cursor()
+   date = date.today()
+   sql = "INSERT INTO Comments(user_id, photo_id, comment_text, comment_date) VALUES ('{0}', '{1}', '{2}', '{3}')".format(uid, pid, comment, date)
+   print(sql)
+   cursor.execute(sql)
+   conn.commit()
+ 
+#add comment to photo, anonymous user
+def addAnonComment(pid, comment):
+   cursor = conn.cursor()
+   date = date.today()
+   sql = "INSERT INTO Comments(photo_id, comment_text, comment_date) VALUES ('{0}', '{1}', '{2}')".format(pid, comment, date)
+   print(sql)
+   cursor.execute(sql)
+   conn.commit()
+
+#get all comments for a photo
+def getComments(pid):
+	cursor = conn.cursor()
+	sql = "SELECT * FROM (SELECT * FROM Comments Where pid = {0}) as A INNER JOIN Users X ON X.user_id = Y.user_id".format(pid)
+	cursor.execute(sql)
+	return cursor.fetchall()
+
+def getAnonComments(pid): 
+	cursor = conn.cursor() 
+	cursor.execute("SELECT * FROM Comments WHERE photo_id = {0} AND user_id IS NULL".format(pid))
+	return cursor.fetchall()
+
+def getPhotoById(pid):
+	cursor = conn.cursor()
+	cursor.execute("SELECT photo_data, photo_id, caption FROM Photos WHERE photo_id = '{0}".format(pid))
+	return cursor.fetchall()[0]
+
+def findPhotoOwner(pid):
+	cursor = conn.cursor()
+	cursor.execute(	"SELECT user_id FROM Photos WHERE photo_id = {0}".format(pid))
+	return cursor.fetchone()[0]
+ 
+@app.route('/comment', methods=[''])
+@flask_login.login_required
+def comment():
+	if (flask_login.current_user.is_anonymous): 
+		if request.method == 'POST': 
+			pid = request.form.get('pid')
+			comment = request.form.get('comment')
+			addAnonComment(pid, comment)
+			return render_template('comments.html', message='Comments', allowed = True, photo=getPhotoById(pid), comments = getComments(pid), acomments = getAnonComments(pid), base64 = base64)
+
+		else: 
+			pid = request.args.get('pid')
+			return render_template('comments.html', message='Comments', allowed = True, photo=getPhotoById(pid), comments = getComments(pid), acomments = getAnonComments(pid), base64=base64)
+
+	else:
+		if request.method == 'POST':
+			uid = getUserIdFromEmail(flask_login.current_user.id)
+			comment = request.form.get('comment')
+			pid = request.form.get('pid')
+			addComment(pid, uid, comment)
+			#return flask.redirect(flask.url_for('hello'))
+			return render_template('comments.html', message='Comments', allowed = True, photo=getPhotoById(pid), comments = getComments(pid), acomments = getAnonComments(pid), base64=base64)
+		
+		else:
+			pid = request.args.get('pid')
+			uid = getUserIdFromEmail(flask_login.current_user.id)
+			currentUser = findPhotoOwner(pid)
+			if uid == currentUser:
+				return render_template('comments.html', message='Comments', allowed = False, photo=getPhotoById(pid), comments = getComments(pid), anonComments = getAnonComments(pid), base64=base64)
+
+			else:
+				return render_template('comments.html', message='Comments', allowed = True, photo=getPhotoById(pid), comments = getComments(pid), anonComments = getAnonComments(pid), base64=base64)
+	
+		
+
 
 #friend stuff
 #get list of friends
 def getFriends(uid):
-   cursor = conn.cursor()
-   sql = "SELECT first_name, last_name, user_id1, user_id2 FROM Friends INNER JOIN Users ON Users.user_id = Friends.userID2 HAVING userID1 = {0}".format(uid)
-   cursor.execute(sql)
-   return cursor.fetchall()
+	cursor = conn.cursor()
+	sql = "SELECT first_name, last_name, user_id1, user_id2 FROM Friends INNER JOIN Users ON Users.user_id = Friends.userID2 HAVING userID1 = {0}".format(uid)
+	cursor.execute(sql)
+	return cursor.fetchall()
  
 #find friend by email
 def findPersonByEmail(email):
