@@ -1,0 +1,31 @@
+<!doctype html>
+{% if message %}
+  <h4>{{message}}!</h4>
+{% endif %}
+<title>Photoshare</title>
+
+
+
+{% if photos == []%}
+  No recommendations.
+{% endif %}
+
+
+{% if photos %}
+<h2>You may like:</h2>
+    <ul>
+    {% for photo in photos %}
+
+        <li>{{photo[2]}}<br>
+        <img src='data:image/jpg;base64, {{ base64.b64encode(photo[0]).decode("ascii") }}' width='600'/><br>
+        <a href='/like?photo_id={{photo[1]}}'>Like</a><br>
+        <a href='/comments?photo_id={{photo[1]}}'>Comment</a><br>
+        <a href='/viewLikes?photo_id={{photo[1]}}'>View Likes</a>
+      </li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+<ul>
+<li><a href='/'>Home</a></li>
+</ul

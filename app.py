@@ -151,7 +151,7 @@ def register_user():
 def getUsersPhotos(uid):
 	cursor = conn.cursor()
 	cursor.execute("SELECT photo_data, photo_id, caption FROM Photos WHERE user_id = '{0}'".format(uid))
-	return cursor.fetchall() #NOTE return a list of tuples, [(photo_data, pid, caption), ...]
+	return cursor.fetchall() #NOTE return a list of tuples, [(photo_data, photo_id, caption), ...]
 
 def tagIDFromTag(tag):
 	cursor = conn.cursor()
@@ -161,17 +161,17 @@ def tagIDFromTag(tag):
 def getUsersPhotosByTag(uid, tag):
 	cursor = conn.cursor()
 	cursor.execute("SELECT Photos.photo_id FROM Photos INNER JOIN Tagged ON Photos.photo_id = Tagged.photo_id WHERE Tagged.tag_id = '{0}' AND Photos.user_id = '{1}'".format(tagIDFromTag(tag), uid))
-	return cursor.fetchall() #NOTE list of tuples, [(photo_data, pid), ...]
+	return cursor.fetchall() #NOTE list of tuples, [(photo_data, photo_id), ...]
 
 def getAllPhotos():
 	cursor = conn.cursor()
 	cursor.execute("SELECT photo_data, photo_id, caption FROM Photos")
-	return cursor.fetchall() #NOTE return a list of tuples, [(photo_data, pid, caption), ...]
+	return cursor.fetchall() #NOTE return a list of tuples, [(photo_data, photo_id, caption), ...]
 
 def getAllAlbums():
     cursor = conn.cursor()
     cursor.execute("SELECT album_name, albums_id FROM Albums")
-    return cursor.fetchall() #NOTE list of tuples, [(photo_data, pid), ...]
+    return cursor.fetchall() #NOTE list of tuples, [(photo_data, photo_id), ...]
 
 def getUserIdFromEmail(email):
 	cursor = conn.cursor()
@@ -192,7 +192,7 @@ def isEmailUnique(email):
 def getUsersAlbums(uid):
    cursor = conn.cursor()
    cursor.execute("SELECT album_name, albums_id FROM Albums WHERE Albums.user_id = '{0}'".format(uid))
-   return cursor.fetchall() #NOTE list of tuples, [(photo_data, pid), ...]
+   return cursor.fetchall() #NOTE list of tuples, [(photo_data, photo_id), ...]
 
 #get users tags
 def getTags():
@@ -262,7 +262,7 @@ def searchPhotosByTag(tag):
 	cursor = conn.cursor()
 	tag_id = tagIDFromTag(tag)
 	cursor.execute("SELECT photo_id FROM Tagged WHERE tag_id={0}".format(tag_id))
-	return cursor.fetchall() #NOTE list of tuples, [(photo_data, pid), ...]
+	return cursor.fetchall() #NOTE list of tuples, [(photo_data, photo_id), ...]
 
 def getPhotosByIDs(ids):
 	cursor = conn.cursor()
@@ -277,14 +277,14 @@ def getPhotosByIDs(ids):
 def getPhotosInAlbum(albums_id):
     cursor = conn.cursor()
     cursor.execute("SELECT photo_data, photo_id, caption FROM Photos WHERE Photos.albums_id = {0}".format(albums_id))
-    return cursor.fetchall() #NOTE list of tuples, [(photo_data, pid), ...]
+    return cursor.fetchall() #NOTE list of tuples, [(photo_data, photo_id), ...]
 
 def getUsersPhotosByTag(uid, tag_name):
 	tag_id = tagIDFromTag(tag_name)
 	uid = getUserIdFromEmail(flask_login.current_user.id)
 	cursor = conn.cursor()
 	cursor.execute("SELECT Photos.photo_id FROM Photos JOIN Tagged ON Photos.photo_id = tagged.photo_id WHERE Photos.user_id = '{0}' AND Tagged.tag_id = '{1}'".format(uid, tag_id))
-	return cursor.fetchall() #NOTE list of tuples, [(photo_data, pid), ...]
+	return cursor.fetchall() #NOTE list of tuples, [(photo_data, photo_id), ...]
 
 #get list of friends
 def getFriends(uid):
@@ -358,6 +358,8 @@ def create_album():
 #end photo uploading code
 
 
+
+
 #view photos and albums
 @app.route('/viewphotos', methods=['GET'])
 def view_photos():
@@ -402,6 +404,171 @@ def friends():
 	if request.method == 'GET':
 		uid = getUserIdFromEmail(flask_login.current_user.id)
 		return render_template('friends.html', message='Friends!', listfriends=getFriends(uid), base64=base64)
+
+
+#comment stuff
+#add comment to photo, has to be a registered user
+def addComment(photo_id, uid, comment):
+  cursor = conn.cursor()
+  date = date.today()
+  date = date.strftime("%Y-%m-%d")
+  cursor.execute('''INSERT INTO Photos (user_id, photo_id, comment_text, comment_date) VALUES (%s, %s, %s, %s )''', (uid, photo_id, comment, date))
+  conn.commit()
+
+
+#add comment to photo, anonymous user
+def addAnonComment(photo_id, comment):
+  cursor = conn.cursor()
+  date = date.today()
+  date = date.strftime("%Y-%m-%d")
+  cursor.execute('''INSERT INTO Photos (photo_id, comment_text, comment_date) VALUES (%s, %s, %s )''', (photo_id, comment, date))
+  conn.commit()
+ 
+#get all comments for a photo
+def getComments(photo_id):
+   cursor = conn.cursor()
+   sql = "SELECT * FROM Comments WHERE photo_id = {0})".format(photo_id)
+   cursor.execute(sql)
+   return cursor.fetchall()
+ 
+def getAnonComments(photo_id):
+   cursor = conn.cursor()
+   cursor.execute("SELECT * FROM Comments WHERE photo_id = {0} AND user_id = NULL".format(photo_id))
+   return cursor.fetchall()
+ 
+def findPhotoOwner(photo_id):
+   cursor = conn.cursor()
+   cursor.execute( "SELECT user_id FROM Photos WHERE photo_id = {0}".format(photo_id))
+   return cursor.fetchone()[0]
+
+
+
+@app.route('/comments', methods=['GET','POST'])
+@flask_login.login_required
+def comments():
+   if (flask_login.current_user.is_anonymous):
+       if request.method == 'POST':
+           photo_id = request.form.get('photo_id')
+           comment = request.form.get('comment')
+           addAnonComment(photo_id, comment)
+           return render_template('comments.html', message='Comments', allowed = True, photo=getPhotosByIDs(photo_id)[0], comments = getComments(photo_id), acomments = getAnonComments(photo_id), base64 = base64)
+       else:
+           photo_id = request.args.get('photo_id')
+           return render_template('comments.html', message='Comments', allowed = True, photo=getPhotosByIDs(photo_id)[0], comments = getComments(photo_id), acomments = getAnonComments(photo_id), base64=base64)
+ 
+   else:
+       if request.method == 'POST':
+           uid = getUserIdFromEmail(flask_login.current_user.id)
+           comment = request.form.get('comment')
+           photo_id = request.form.get('photo_id')
+           addComment(photo_id, uid, comment)
+           return render_template('comments.html', message='Comments', allowed = True, photo=getPhotosByIDs(photo_id)[0], comments = getComments(photo_id), acomments = getAnonComments(photo_id), base64=base64)
+       else:
+           photo_id = request.args.get('photo_id')
+           uid = getUserIdFromEmail(flask_login.current_user.id)
+           currentUser = findPhotoOwner(photo_id)
+           if uid == currentUser:
+               return render_template('comments.html', message='Comments', allowed = False, photo=getPhotosByIDs(photo_id)[0], comments = getComments(photo_id), anonComments = getAnonComments(photo_id), base64=base64)
+           else:
+               return render_template('comments.html', message='Comments', allowed = True, photo=getPhotosByIDs(photo_id)[0], comments = getComments(photo_id), anonComments = getAnonComments(photo_id), base64=base64)
+  
+
+# recommendation
+def photoRecIDs(tag_id):
+	uid = getUserIdFromEmail(flask_login.current_user.id)
+	cursor = conn.cursor()
+	sql = "SELECT Tagged.photo_id FROM Photos JOIN Tagged ON Photos.photo_id = Tagged.photo_id WHERE Tagged.tag_id = {0} AND Photos.user_id <> {1}".format(tag_id, uid)
+	cursor.execute(sql)
+	return cursor.fetchall() #NOTE list of tuples, [(imgdata, pid), ...]
+
+	
+@app.route('/photorec', methods=['GET'])
+@flask_login.login_required
+def photorec():
+	if request.method == 'GET':
+		uid = getUserIdFromEmail(flask_login.current_user.id)
+		tag_id = getTopUserTag(uid)
+		photo_id = photoRecIDs(tag_id)
+		return render_template('photorec.html', message='You May Also Like', photos = getPhotosByIDs(photo_id),  base64=base64)	
+	else:
+		return render_template('photorec.html', message='You May Also Like', photos = [],  base64=base64)	
+
+
+def getTopUserTag(uid):
+	cursor = conn.cursor()
+	sql = "SELECT user_id, tag_id WHERE user_id = {0} GROUP BY tag_id ORDER BY COUNT(*) DESC LIMIT 1".format(uid)
+	cursor.execute(sql)
+	return cursor.fetchall() #NOTE list of tuples, [(imgdata, pid), ...]
+
+#insert like
+def addLike(uid, pid):
+   cursor = conn.cursor()
+   cursor.execute("INSERT INTO Likes VALUES ({0},{1})".format(pid, uid))
+   conn.commit()
+ 
+#see all likes on a photo
+def allLikes(pid):
+   cursor = conn.cursor()
+   sql = "SELECT first_name, last_name, email, photo_id FROM Likes INNER JOIN Users ON Users.user_id = Likes.user_id HAVING photo_id = {0};".format(pid)
+   cursor.execute(sql)
+   return cursor.fetchall()
+ 
+def totalLikes(pid):
+   cursor = conn.cursor()
+   cursor.execute("SELECT COUNT(*) FROM Likes WHERE photo_id = {0};".format(pid))
+   return cursor.fetchone()[0]
+ 
+@app.route('/like', methods=['GET'])
+@flask_login.login_required
+def likeAction():
+   if request.method == 'GET':
+       uid = getUserIdFromEmail(flask_login.current_user.id)
+       pid = request.args.get('pid')
+       addLike(uid,pid)
+       return render_template('hello.html', name=flask_login.current_user.id, message='All Photos By Tag', photos=getUsersPhotos(uid),base64=base64)
+ 
+ 
+@app.route('/seelikes', methods=['GET'])
+@flask_login.login_required
+def seelikes():
+   if request.method == 'GET':
+       pid = request.args.get('pid')
+       return render_template('likes.html', name=flask_login.current_user.id, message='Here are the likes you got:', pid = pid, photo=getPhotoById(pid), likes = allLikes(pid), count = totalLikes(pid), base64=base64)
+
+@app.route('/useractivity', methods=['GET'])
+@flask_login.login_required
+def useractivity():
+   cursor = conn.cursor()
+   cursor.execute("SELECT Users.email, COUNT(picture_id) + COUNT(Comments.comment_id) FROM Users LEFT OUTER JOIN Comments ON Users.user_id = Comments.user_id LEFT OUTER JOIN Photos ON User.user_id = Photos.user_id GROUP BY Users.user_id HAVING COUNT(comment_id) + COUNT(photo_id) ORDER BY COUNT(comment_id) + COUNT(photo_id) DESC Limit 10")
+   stat = cursor.fetchall()
+   return render_template('useractivity.html', message='Here are the top contribution scores', stat=stat, base64=base64)
+
+@app.route('/searchComments', methods=['POST', 'GET'])
+def searchComments():
+	if request.method == 'POST':
+		cursor = conn.cursor()
+		comment = request.form.get('comment')
+		cursor.execute("SELECT Users.email, COUNT(picture_id) + COUNT(Comments.comment_id) FROM Users LEFT OUTER JOIN Comments ON Users.user_id = Comments.user_id LEFT OUTER JOIN Photos ON User.user_id = Photos.user_id GROUP BY Users.user_id HAVING COUNT(comment_id) + COUNT(photo_id) ORDER BY COUNT(comment_id) + COUNT(photo_id) DESC Limit 10;".format(comment))
+		results = cursor.fetchall()
+		return render_template('searchComments.html', message='Here are the results!', results = results)
+	else:
+		return render_template('searchComments.html')
+
+
+
+@app.route('/friendrec', methods=['GET'])
+@flask_login.login_required
+def friendrec():
+    if request.method == 'GET':
+        uid = getUserIdFromEmail(flask_login.current_user.id)
+        cursor = conn.cursor()
+        cursor.execute("SELECT f2.userID2 FROM Friends f1 JOIN Friends f2 ON f2.user_id1 = f1.user_id2 and f2.user_id2 <> f1.user_id1 JOIN Users on f2.user_id2 = Users.user_id WHERE f1.user_id1 = {0} AND f2.user_id2 NOT IN (SELECT f3.user_id2 from Friends f3 where f3.user_id1 = {1}) GROUP BY f2.user_id2 ORDER BY COUNT(*) DESC f2.user_id2 LIMIT 1".format(uid, uid))
+        recs = cursor.fetchall()
+        if len(recs) == 0:
+                recs = []
+        return render_template('friendrec.html', message='Recommended friends', friends=recs, base64=base64)
+
+
 
 #default page
 @app.route("/", methods=['GET'])

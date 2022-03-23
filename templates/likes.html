@@ -1,0 +1,22 @@
+<title>See Likes!</title>
+ 
+{% if photo %}
+<h2>Selected Photo:</h2>
+   <ul>
+ 
+       <li>{{photo[2]}}<br>
+       <img src='data:image/jpg;base64, {{ base64.b64encode(photo[0]).decode("ascii") }}' width='600'/><br>
+       You have {{count}}likes<br>
+       <br>
+       {% if likes %}
+       <u1>
+       {%for like in likes%}
+       <li>
+           {{like[0]}} {{like[1]}} {{like[2]}}
+       </li>
+       {% endfor %}
+       </u1>
+       {% endif %}
+     </li>
+   </ul>
+{% endif %}

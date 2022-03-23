@@ -1,0 +1,18 @@
+<div class="title">
+    <h1>Search Comments</h1>
+ </div>
+ <form method="post" enctype="multipart/form-data" action="/searchComments">
+    <label for="comment">Input Phrase to Search</label>
+    <input type="text" name="comment" required='true' /><br />
+    <input type="submit" value="Search" />
+ </form>
+  
+ {% if results %}
+    <ul>
+    {% for r in results %}
+        <li>{{r[1]}} ---  number matches: {{r[0]}}<br>
+      </li>
+    {% endfor %}
+    </ul>
+ {% endif %}
+ 

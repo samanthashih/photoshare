@@ -15,7 +15,9 @@
 
         <li>{{photo[2]}}<br>
         <img src='data:image/jpg;base64, {{ base64.b64encode(photo[0]).decode("ascii") }}'/></li>
-    {% endfor %}
+        <a href='/like?photo_id={{photo[1]}}'>Like</a><br>
+        <a href='/comments?photo_id={{photo[1]}}'> Comments</a><br>
+        <a href='/viewPhotoLikes?photo_id={{photo[1]}}'>View Likes</a><br>        {% endfor %}
     </ul>
 {% endif %}
 
@@ -32,9 +34,6 @@
     {% for album in albums %}
         <li>
         <a href='/viewalbumphotos?albums_id={{album[1]}}'>{{album[0]}}</a>
-        <a href='/like?photo_id={{photo[1]}}'>Like</a><br>
-        <a href='/comments?photo_id={{photo[1]}}'>Comment</a><br>
-        <a href='/viewPhotoLikes?photo_id={{photo[1]}}'>View Likes</a><br>
       </li>
     {% endfor %}
     </ul>
@@ -52,6 +51,8 @@
 <li><a href='/viewphotos'>View any photo</a></li>
 <li><a href='/viewalbums'>View any album</a></li>
 <li><a href='/friends'>View friends list</a></li>
+<li><a href='/photorecommendations'>Photo recs</a></li>
+<li><a href='/useractivity'>User Activity</a></li>
 
 
 

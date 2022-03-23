@@ -1,0 +1,10 @@
+<title>See User Stats!</title>
+ 
+{% if stat %}
+   <ul>
+   {% for individual in stat %}
+       <li>{{individual[0]}} {{individual[1]}}<br>
+     </li>
+   {% endfor %}
+   </ul>
+{% endif %}
