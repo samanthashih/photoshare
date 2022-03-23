@@ -1,0 +1,21 @@
+<head>
+    <title>Friend Recommendations</title>
+</head>
+
+
+{% if friends %}
+    <ul>
+    {% for f in friends %}
+
+        <li>{{f[0]}}<br>
+        <a href='/addfriends?userID={{f[0]}}'>Friend this person!</a><br>
+      </li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+{% if friends == []%}
+    No recommendations
+{% endif %}
+
+<li><a href='/'>Home</a></li>

@@ -4,7 +4,6 @@
 <h2>Selected Photo:</h2>
     <ul>
         <li>{{photo[2]}}<br>
-        <img src='data:image/jpg;base64, {{ base64.b64encode(photo[0]).decode("ascii") }}' width='600'/><br>
 
         <br>
         {% if allowed %}
@@ -14,7 +13,7 @@
                 <form method="post" action="{{ url_for('comments') }}">
                         <label for="comment">Post a Comment:</label>
                         <input type="text" name="comment" /><br />
-                        <input id="photo_id" name="photo_id" type="hidden" value={{photo[0]}}>
+                        <input id="photo_id" name="photo_id" type="hidden" value={{photo[1]}}>
                     <input type="submit" />
                 </form>
              </div>
@@ -28,14 +27,7 @@
                 <li>{{comment[3]}}<br></li>
             {% endfor %}
         {% endif %}
-
-        {% if anonComments%}
-        <u1>
-            {%for com in anonComments%}
         
-            <li> Anonymous commented on {{com[2]}}: {{com[1]}} <br> </li>
-            {% endfor %}
-        {% endif %}
       </u1>
       </li>
     </ul>

@@ -13,7 +13,7 @@
                 <input type="text" name="caption" required='true' /><br />
 
                 <label for="album_name">Choose an album for your photo:</label>
-                <select name=album_id method="GET" required='true' action="/">
+                <select name=albums_id method="GET" required='true' action="/">
                     {% for album_name in albums %}
                     <option value= "{{album_name[1]}}" SELECTED>{{album_name[0]}}</option>"
                     {% endfor %}

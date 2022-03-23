@@ -17,7 +17,7 @@
         <img src='data:image/jpg;base64, {{ base64.b64encode(photo[0]).decode("ascii") }}'/></li>
         <a href='/like?photo_id={{photo[1]}}'>Like</a><br>
         <a href='/comments?photo_id={{photo[1]}}'> Comments</a><br>
-        <a href='/viewPhotoLikes?photo_id={{photo[1]}}'>View Likes</a><br>        {% endfor %}
+        <a href='/seelikes?photo_id={{photo[1]}}'>View Likes</a><br>        {% endfor %}
     </ul>
 {% endif %}
 
@@ -42,17 +42,21 @@
 
 <ul>
 <li><a href='/upload'>Upload a photo</a> </li>
+<li><a href='/createAlbum'>Create an album</a> </li>
 <li><a href='/logout'>Logout</a></li>
 <li><a href='/addfriends'>Add a friend</a></li>
 <li><a href='/yourphotos'>View your photos</a></li>
 <li><a href='/youralbums'>View your albums</a></li>
 <li><a href='/yourphotosbytag'>View your photos by tag</a></li>
 <li><a href='/photosearchbytag'>View any photo by tag</a></li>
+<li><a href='/searchComments'>Search comments</a></li>
 <li><a href='/viewphotos'>View any photo</a></li>
 <li><a href='/viewalbums'>View any album</a></li>
 <li><a href='/friends'>View friends list</a></li>
-<li><a href='/photorecommendations'>Photo recs</a></li>
+<li><a href='/photorec'>Photo recs</a></li>
 <li><a href='/useractivity'>User Activity</a></li>
+<li><a href='/friendrec'>Friend Recommendations</a></li>
+<li><a href='/viewPopularTags'>View popular tags</a></li>
 
 
 

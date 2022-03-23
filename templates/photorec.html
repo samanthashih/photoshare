@@ -1,3 +1,4 @@
+<!-- author Snigdha Kalathur -->
 <!doctype html>
 {% if message %}
   <h4>{{message}}!</h4>
@@ -7,20 +8,21 @@
 
 
 {% if photos == []%}
-  No recommendations.
+  There are no recommendations at this time.
 {% endif %}
 
 
+
 {% if photos %}
-<h2>You may like:</h2>
+<h2>Based on your most used tags, you may also like these photos:</h2>
     <ul>
     {% for photo in photos %}
 
         <li>{{photo[2]}}<br>
         <img src='data:image/jpg;base64, {{ base64.b64encode(photo[0]).decode("ascii") }}' width='600'/><br>
-        <a href='/like?photo_id={{photo[1]}}'>Like</a><br>
+        <a href='/like?photo_id={{photo[1]}}'>LIKE</a><br>
+        <a href='/seelikes?photo_id={{photo[1]}}'>View Likes</a>
         <a href='/comments?photo_id={{photo[1]}}'>Comment</a><br>
-        <a href='/viewLikes?photo_id={{photo[1]}}'>View Likes</a>
       </li>
     {% endfor %}
     </ul>
@@ -28,4 +30,4 @@
 
 <ul>
 <li><a href='/'>Home</a></li>
-</ul
+</ul>

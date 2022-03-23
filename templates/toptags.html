@@ -1,0 +1,15 @@
+<head>
+    <title>Popular Tags</title>
+ </head>
+  
+ {% if tags %}
+    <ul>
+    {% for t in tags %}
+      <li>
+        <li>{{t[0]}}<br>
+        <a href='/viewPopularTags?tag={{t}}'>{{tag}}</a><br>
+      </li>
+    {% endfor %}
+    </ul>
+ {% endif %}
+ 
