@@ -221,7 +221,7 @@ def addAnonComment(pid, comment):
 #get all comments for a photo
 def getComments(pid):
 	cursor = conn.cursor()
-	sql = "SELECT * FROM (SELECT * FROM Comments Where pid = {0}) as A INNER JOIN Users X ON X.user_id = Y.user_id".format(pid)
+	sql = "SELECT * FROM (SELECT * FROM Comments Where photo_id = {0}) as A INNER JOIN Users X ON X.user_id = Y.user_id".format(pid)
 	cursor.execute(sql)
 	return cursor.fetchall()
 
@@ -272,9 +272,41 @@ def comment():
 
 			else:
 				return render_template('comments.html', message='Comments', allowed = True, photo=getPhotoById(pid), comments = getComments(pid), anonComments = getAnonComments(pid), base64=base64)
-	
-		
 
+#insert like 
+def addLike(uid, pid):
+	cursor = conn.cursor()
+	cursor.execute("REPLACE INTO Likes VALUES ({0},{1})".format(uid, pid))
+	conn.commit()
+
+#see all likes on a photo
+def allLikes(pid):
+	cursor = conn.cursor()
+	"SELECT first_name, last_name, email, photo_id FROM Likes INNER JOIN Users ON Users.user_id = Likes.user_id HAVING photo_id = {0};".format(pid)
+	cursor.execute()
+	return cursor.fetchall() 
+
+def totalLikes(pid):
+	cursor = conn.cursor()
+	cursor.execute("SELECT COUNT(*) FROM Likes WHERE photo_id = {0};".format(pid))
+	return cursor.fetchone()[0]
+
+@app.route('/like', methods=['GET'])
+@flask_login.login_required
+def likeAction():
+	if request.method == 'GET':
+		uid = getUserIdFromEmail(flask_login.current_user.id)
+		pid = request.args.get('pid')
+		addLike(uid,pid)
+		return render_template('hello.html', name=flask_login.current_user.id, message='All Photos By Tag', photos=getUsersPhotos(uid),base64=base64)
+
+
+@app.route('/seelikes', methods=['GET'])
+@flask_login.login_required
+def seelikes():
+	if request.method == 'GET':
+		pid = request.args.get('pid')
+		return render_template('likes.html', name=flask_login.current_user.id, message='Here are the likes you got:', pid = pid, photo=getPhotoById(pid), likes = allLikes(pid), count = totalLikes(pid), base64=base64)
 
 #friend stuff
 #get list of friends
@@ -316,6 +348,26 @@ def add_friend():
 	else:
 		return render_template('addfriends.html')
 
+@app.route('/userActivity', methods=['GET'])
+@flask_login.login_required
+def userActivity():
+	cursor = conn.cursor()
+	cursor.execute("Select Users.email, COUNT(picture_id)+ COUNT(Comments.comment_id) From Users left Outer Join Pictures on Users.user_id = Pictures.user_id left outer join Comments on Users.user_id = Comments.user_id Group By Users.user_id having COUNT(photo_id)+ COUNT(Comments.comment_id)>0 Order by COUNT(photo_id)+ COUNT(Comments.comment_id) DESC Limit 10")
+	stat = cursor.fetchall()
+	return render_template('userActivity.html', message='Here are the top contribution scores', stat=stat, base64=base64)
+
+
+@app.route('/searchComments', methods=['POST', 'GET'])
+def searchComments():
+    if request.method == 'POST':
+        cursor = conn.cursor()
+        comment = request.form.get('comment')
+        cursor.execute("Select COUNT(Comments.comment_id), Users.email From Comments INNER JOIN Users Where Comments.comment_text = '{0}' and Comments.user_id = Users.user_id Group By Comments.comment_text, Users.email Order by Count(Comments.comment_id) desc".format(comment))
+        results = cursor.fetchall()
+        print("results are:", results)
+        return render_template('searchComments.html', message='Here are the results!', results = results)
+    else:
+        return render_template('searchComments.html')
 
 # @app.route('/addfriends', methods=['POST'])
 # @flask_login.login_required
